@@ -20,6 +20,7 @@
       height: 100%;
       background: #000;
       overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
     video {
@@ -35,6 +36,30 @@
         object-fit: contain;
       }
     }
+
+    .sound-hint {
+      position: fixed;
+      top: max(16px, env(safe-area-inset-top));
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #fff;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      white-space: nowrap;
+      z-index: 10;
+    }
+
+    .sound-hint.visible {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -48,33 +73,46 @@
     preload="auto"
   ></video>
 
+  <div id="sound-hint" class="sound-hint">Toque na tela para ativar o som</div>
+
   <script>
     const video = document.getElementById("convite-video");
+    const soundHint = document.getElementById("sound-hint");
+
+    function syncHint() {
+      soundHint.classList.toggle("visible", video.muted);
+    }
 
     async function startVideo() {
       try {
         video.muted = false;
+        video.volume = 1;
         await video.play();
       } catch {
         video.muted = true;
         video.play().catch(() => {});
       }
+      syncHint();
     }
 
-    window.addEventListener("DOMContentLoaded", startVideo);
-
-    video.addEventListener("click", (e) => {
-      const rect = video.getBoundingClientRect();
-      const inControlsBar = e.clientY > rect.bottom - 56;
-
+    function unmuteOnInteraction(e) {
       if (video.muted) {
         video.muted = false;
+        video.volume = 1;
+        syncHint();
       }
 
+      const rect = video.getBoundingClientRect();
+      const inControlsBar = e.clientY > rect.bottom - 56;
       if (!inControlsBar && video.paused) {
         video.play().catch(() => {});
       }
-    });
+    }
+
+    window.addEventListener("DOMContentLoaded", startVideo);
+    video.addEventListener("volumechange", syncHint);
+    document.addEventListener("pointerdown", unmuteOnInteraction, { passive: true });
+    document.addEventListener("click", unmuteOnInteraction);
   </script>
 </body>
 </html>
