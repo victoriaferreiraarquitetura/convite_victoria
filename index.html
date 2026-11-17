@@ -39,10 +39,42 @@
 </head>
 <body>
   <video
+    id="convite-video"
     src="./convite.mp4"
-    controls
+    autoplay
+    muted
     playsinline
+    controls
     preload="auto"
   ></video>
+
+  <script>
+    const video = document.getElementById("convite-video");
+
+    async function startVideo() {
+      try {
+        video.muted = false;
+        await video.play();
+      } catch {
+        video.muted = true;
+        video.play().catch(() => {});
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", startVideo);
+
+    video.addEventListener("click", (e) => {
+      const rect = video.getBoundingClientRect();
+      const inControlsBar = e.clientY > rect.bottom - 56;
+
+      if (video.muted) {
+        video.muted = false;
+      }
+
+      if (!inControlsBar && video.paused) {
+        video.play().catch(() => {});
+      }
+    });
+  </script>
 </body>
 </html>
